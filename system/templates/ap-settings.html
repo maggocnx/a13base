@@ -1,0 +1,19 @@
+<ion-view title="{{settings.ssid}}" >
+	<ion-content >
+		<ion-list class="list">
+			<div >
+				<label class="item item-input">
+				 	<span class="input-label">Passphrase</span>
+					<input type="text" prompt="Password" ng-model="settings.passphrase">
+				</label>
+			</div>
+			
+			<ion-item href="#/ip/wlan0" class="item item-toggle">
+				Advanced settings 
+			</ion-item>
+		</ion-list>
+		<div class="padding">
+			<button class="button button-block button-positive" ng-click="connect()">Connect</button>
+		</div>
+	</ion-content>
+</ion-view>

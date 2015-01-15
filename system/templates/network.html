@@ -1,0 +1,45 @@
+<ion-view title="Network">
+	<ion-content >	
+		<ion-list>
+			<ion-item class="item item-toggle" href="#/wifi">
+				Wifi 
+				<span class="item-note">
+				 	{{ifaceConfig(wlan0)}}
+			    		</span>
+			
+				<label class="toggle toggle-assertive">
+					<input type="checkbox" ng-model="interfaces.wlan0.active" ng-change="change('wlan0')">
+					<div class="track">
+						<div class="handle"></div>
+			   		</div>
+			 	</label>
+			</ion-item>
+			<ion-item class="item item-toggle" href="#/ip/eth0">
+				Ethernet 
+				 <span class="item-note">
+				 		{{getAddress(eth0)}}
+			    		</span>
+				<label class="toggle toggle-assertive">
+					<input type="checkbox" ng-model="interfaces.eth0.active" ng-change="change('eth0')">
+					<div class="track">
+						<div class="handle"></div>
+			   		</div>
+			 	</label>
+			</ion-item>
+			
+			<ion-item class="item item-toggle" href="#/mobile">
+				Mobile Data
+				<label class="toggle toggle-assertive">
+					<input type="checkbox" ng-model="config.mobileNetwork.active" ng-change="toggleMobile()">
+					<div class="track">
+						<div class="handle"></div>
+			   		</div>
+			 	</label>
+			</ion-item>
+			
+			<ion-item>
+				External IP : {{externalIp}}
+			</ion-item>
+		</ion-list>
+	</ion-content>
+</ion-view>

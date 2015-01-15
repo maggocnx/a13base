@@ -1,0 +1,14 @@
+<ion-view title="Settings" hide-back-button="true">
+	<ion-nav-buttons side="left">
+		<a class="button button-icon icon ion-home" href="file:///gronic/startup.html"></a>
+    </ion-nav-buttons>
+	<ion-content >
+		<ion-list>
+			<a href="#/network" class="item">Network</a>
+			<a href="#/app" class="item">App</a>
+			<a ng-click="calibrate()" class="item">Calibrate Touchscreen</a>
+			<a ng-click="startRemoteSupport()" class="item">Remote Support</a>
+			<a ng-click="restart()" class="item">Reboot</a>
+		</ion-list>
+	</ion-content>
+</ion-view>

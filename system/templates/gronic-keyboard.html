@@ -1,0 +1,18 @@
+<div id="grInput" class="input-overlay" ng-show="keyboard.visible">
+	<div class="list list-inset">
+		<label class="item item-input">
+		<span class="input-label">{{keyboard.prompt}}</span>
+			<input id="grTouchInput" ng-keypress="keypress($event)" type="{{keyboard.type}}" placeholder="{{keyboard.placelholder}}" ng-model="keyboard.value" disable-touch  ng-blur="refocus($event)" >
+		</label>
+	</div>
+	<div class="size4 keyboardBody" ng-class="keyboard.class" ng-hide="keyboard.hidden">
+		<div ng-repeat="(name, layout) in keyboard.layouts">
+			<div ng-show="currentLayout==name" class="keyboardbutton" ng-class="key.buttonClass" ng-repeat="key in layout.keys" ng-click="triggerButton(key, $event, $element)" >
+				<div ng-class="key.keyClass" class="key">
+					<div ng-if="!key.icon">{{getText(key)}}</div>
+					<i ng-if="key.icon" class="icon" ng-class="key.icon"></i>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

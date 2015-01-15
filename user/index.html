@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html ng-app="demoApp">
+  <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+		<title>Gronic</title>
+		
+
+		<!-- Include ionicframework for mobile components. Angularjs is includes in the bundle -->
+		<script src="file:///gronic/lib/ionic/js/ionic.bundle.js"></script>
+		<!-- Include components our custom components for touchkeyboard, printing, statusbar etc. -->
+		<script src="file:///gronic/js/gronic-ui.js"></script>
+
+		<!-- css components for ionic  -->
+		<link href="file:///gronic/lib/ionic/css/ionic.css" rel="stylesheet">
+
+		<!-- gronic css (keyboard, statusbar etc.) -->
+		<link href="file:///gronic/css/gronic-ui.css" rel="stylesheet">
+
+
+	</head>
+	<body ng-controller="DemoCtrl" ng-keydown="onKeypress($event)">
+		
+		<!-- The status bar with signal indicator time ...  -->
+		<status-bar title="Gronic Demo" settings-button="true"></status-bar>
+		
+		<!-- Please refer to the ionicframework documentation for information of the ion tags  -->
+		<ion-content padding="true" class="has-header">
+			<ion-list>
+				<label class="item item-input">
+					<input  id="testInput" type="text" disable-touch placeholder="Type a number on keypad" name="Test" ng-model="userData.test" tabindex="0" autofocus="true">
+				</label>
+			</ion-list>
+		    <div class="card">
+  				<div class="item item-text-wrap">
+  				  <p>This is a simple demo of an app written in Html5/Javascript. Type a number on the keypad and press OK to print it. You can see the sourcecode of this app  and further information  on <b>http://git.io/gQmRlw </b> .</p>
+					<p>Press the settings button in the header bar to access the settings. Here you can setup a new url for your own app. </p>				  
+  				</div>
+			</div>
+		</ion-content>
+
+		<!-- Canvas for drawing the image for the thermal printer  -->
+		<canvas id="printCanvas" width="384px" height="50px" ></canvas>
+	</body>
+	<script>
+
+		// Initialisation of an angularjs app  ionic and gronic.ui modules need to be injected
+		angular.module('demoApp', ['ionic' , 'gronic.ui']) 
+
+		//Simple controller. In real world application routing would be probably used.
+		.controller("DemoCtrl", function($scope, printer, $ionicScrollDelegate ){
+
+			//Get canvas and its context
+			var canvas = document.getElementById("printCanvas");
+			var context = canvas.getContext('2d');
+
+			//Get the inputfield for refocus  
+			var testInput = document.getElementById("testInput");
+
+			// $scope variable for 2 way binding to the html view
+			$scope.userData = {}
+
+
+			//Function gets called if key is pressed. Note the ng-keydown attribute in the body tag above
+			$scope.onKeypress = function(e){
+				//Scroll back to top 
+				$ionicScrollDelegate.scrollTop();
+				//Focus input 
+				testInput.focus()
+				//if key is ok(enter) button print the content of the field and clear it after
+				if(e.keyCode == 13){
+					$scope.print();
+					$scope.userData.test = "";
+				}
+			}
+
+			// The print function 
+			$scope.print = function(){
+				//Select a font 
+				context.font = '22pt Courier';
+				//Render the inputs value to the canvas as text
+				context.fillText($scope.userData.test, 40, 40);
+				//Send the canvas to the printer
+				printer.printCanvas(canvas, function(){
+					//Clean up canvas after printing 
+					context.clearRect ( 0 , 0 , canvas.width, canvas.height );
+				});
+			}
+
+		})
+	</script>
+</html>

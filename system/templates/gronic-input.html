@@ -1,0 +1,17 @@
+<div id="grInput" class="input-overlay">
+	<ng-switch on="inputMode">
+		<div ng-switch-when="keyboard">
+			<div class="list list-inset">
+  				<label class="item item-input">
+  				<span class="input-label">{{prompt}}</span>
+    				<input id="grTouchInput" ng-keypress="keypress($event)" type="{{type}}" placeholder="{{placelholder}}" ng-model="v.value" disable-touch ng-blur="refocus($event)"  autofocus>
+  				</label>
+			</div>
+			<keyboard ng-show="keyboardVisible" value="value" key-callbacks="keyboardCallbacks" mode="keyboardMode" show-next="kbShowNext"></keyboard>
+		</div>
+
+		<div ng-switch-when="date">
+			<gr-date-picker on-select="dateSelected" ></gr-date-picker>
+		</div>
+	</ng-switch>
+</div>

@@ -1,0 +1,31 @@
+{
+    "deviceType": "topup4",
+    "app": {
+        "startup": "index.html"
+    },
+    "mobileNetwork": {
+        "active": false,
+        "apn": "uuuusdasd",
+        "user": "umeseasdad",
+        "password": "pppppppp"
+    },
+    "network": {
+        "eth0": {
+            "active": true,
+            "dhcp": false,
+            "ipAddress": "192.168.0.69",
+            "netmask": "255.255.255.0",
+            "gateway": "192.168.0.1",
+            "mac": "9a:86:08:d7:51:bb"
+        },
+        "wlan0": {
+            "active": true,
+            "dhcp": false,
+            "ipAddress": "192.168.0.70",
+            "netmask": "255.255.255.0h",
+            "gateway": "192.168.0.1",
+            "encryted": false,
+            "ssid": "test"
+        }
+    }
+}

@@ -1,0 +1,30 @@
+<ion-view title="Ip settings">
+	<ion-content >
+		<ion-list>
+			<ion-item class="item item-toggle">
+				DHCP {{dhcp}}
+				<label class="toggle toggle-assertive">
+					<input type="checkbox" ng-model="settings.dhcp">
+					<div class="track">
+						<div class="handle"></div>
+			   		</div>
+			 	</label>
+			</ion-item>
+				
+			<div ng-hide="settings.dhcp">
+				<label class="item item-input">
+				 	<span class="input-label">IP Address</span>
+					<input type="text"  ng-model="settings.ipAddress">
+				</label>
+				<label class="item item-input">
+				 	<span class="input-label">Netmask</span>
+					<input type="text" placeholder="Netmask" ng-model="settings.netmask">
+				</label>
+				<label class="item item-input">
+				 	<span class="input-label">Gateway</span>
+					<input type="text" ng-model="settings.gateway">
+				</label>
+			</div>
+		</ion-list>
+	</ion-content>
+</ion-view>
