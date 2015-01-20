@@ -24,7 +24,14 @@ if(platform == 'linux'){
 
 	checkWifiStatus = function(){
 		wireless.info(function(err,info){
-			if(!err){
+			console.log(err)
+			console.log(JSON.stringify(info))
+			if(err || !info.ssid ){
+				// console.log("NO WIFI")
+				global.device.emit("wifistatus", null)
+			}
+			else{
+				// console.log("YES WIFI")
 				global.device.emit("wifistatus", info)
 			}
 		});

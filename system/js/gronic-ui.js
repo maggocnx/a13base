@@ -51,21 +51,26 @@ angular.module('gronic.ui', [])
 .directive('wifiStatus', function() {
 	return  {
 		restrict : "E",
-		template : '<span><img ng-src="file:///gronic/img/wifi_{{bars}}.png"></span>',
+		template : '<span ng-show="active"><img ng-src="file:///gronic/img/wifi_{{bars}}.png"></span>',
 		link : function(scope,element,attrs){
 			scope.bars = 0;
+			scope.active = false;
 			global.device.on("wifistatus", function(info){
-				if(info.strength > 75){
-					scope.bars = 3; 
-				}
-				else if(info.strength > 50){
-					scope.bars = 2; 
-				}
-				else if(info.strength > 25){
-					scope.bars = 1; 
-				}
-				else{
-					scope.bars = 0;
+				
+				if(info){
+					scope.active = true;
+					if(info.strength > 75){
+						scope.bars = 3; 
+					}
+					else if(info.strength > 50){
+						scope.bars = 2; 
+					}
+					else if(info.strength > 25){
+						scope.bars = 1; 
+					}
+					else{
+						scope.bars = 0;
+					}
 				}
 
 				scope.$apply();
