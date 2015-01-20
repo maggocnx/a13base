@@ -57,7 +57,7 @@ Wireless.prototype.COMMANDS = {
     leave: 'iwconfig :INTERFACE essid ""',
     metric: 'ifconfig :INTERFACE metric :METRIC',
     connect_wep: 'iwconfig :INTERFACE essid ":ESSID" key :PASSWORD',
-    connect_wpa: 'wpa_passphrase ":ESSID" ":PASSWORD" > wpa-temp.conf && wpa_supplicant -D wext -i :INTERFACE -c wpa-temp.conf && rm wpa-temp.conf',
+    connect_wpa: 'wpa_passphrase ":ESSID" ":PASSWORD" > /gronic/wpa.conf && wpa_supplicant -D wext -i :INTERFACE -c /gronic/wpa.conf',
     connect_open: 'iwconfig :INTERFACE essid ":ESSID"',
     info : 'iwconfig :INTERFACE '
 };
@@ -196,7 +196,10 @@ Wireless.prototype.info = function(callback) {
                 var ssidRegex = /ESSID:"(.*)" /;
                 info.ssid  = (ssidRegex.exec(stdout)[1]).trim();
             }
-            callback && callback(null,info);
+
+            if(callback){
+                callback(null,info);
+            }
         }
     });
 };

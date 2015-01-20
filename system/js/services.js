@@ -75,7 +75,7 @@ angular.module('a13base.services', [])
 				
 				if(iface=='wlan0'){
 					if(settings.encryted){
-						interfacesFile += "   wpa-conf " + wifiPath + "/" +  settings.ssid + ".conf\n\n";
+						interfacesFile += "   wpa-conf /gronic/wpa.conf\n\n";
 					}
 					else{
 						interfacesFile += "   wireless-essid " + settings.ssid + "\n\n";
@@ -95,8 +95,6 @@ angular.module('a13base.services', [])
 		else{
 			console.log(interfacesFile)
 		}
-
-
 	}
 
 	return {
@@ -146,8 +144,14 @@ angular.module('a13base.services', [])
 						config.save();
 						applySettings();
 						callback && callback(null);
+
+						
+						
 					}
 				});
+
+
+
 			});
 		},
 		connectMobile : function(){
@@ -185,5 +189,6 @@ angular.module('a13base.services', [])
 				}
 			}
 		}
+
 	}
 })
