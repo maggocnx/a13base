@@ -5,6 +5,7 @@ var gui = null;
 var child_process = require("child_process"); 
 var exec = child_process.exec;
 var spawn = child_process.spawn;
+var platform = require("os").platform();
 
 var config = require(process.cwd() + "/system/config.json");
 global.deviceType = config.deviceType;
@@ -16,46 +17,68 @@ global.reverseTunnel = null;
 
 var devOverlayHtml = '<button class="button-icon ion-refresh" click="alert("PPP")"></button>'
 
+if(platform == 'linux'){
+	var Wireless = require("./wireless.js");
+	global.wireless = new Wireless({iface : "wlan0"});
+	global.wifiProcess = null;
 
-global.checkSignal =function(){
-	global.signalCheckProcess = exec("comgt -d /dev/ttyUSB2 sig",function(err, stdout,stderr){
-		try{
-			var signalRE = stdout.match("ty: (.*),");
-			var signalValue = parseInt(signalRE[1]);
+	checkWifiStatus = function(){
+		wireless.info(function(err,info){
+			if(!err){
+				global.device.emit("wifistatus", info)
+			}
+		});
+	}
 
-			if(signalValue > 22){
-				signal = 4
-			}
-			else if(signalValue > 15){
-				signal = 3
-			}
-			else if(signalValue > 7){
-				signal = 2
-			}
-			else if(signalValue > 1){
-				signal = 1
-			}
-			else{
-				signal = 0
-			}
+	checkWifiStatus();
 
-			global.device.emit("signalchanged", signal);
+	setInterval(checkWifiStatus,10000 );
 
+	global.checkSignal =function(){
+		global.signalCheckProcess = exec("comgt -d /dev/ttyUSB2 sig",function(err, stdout,stderr){
+			try{
+				var signalRE = stdout.match("ty: (.*),");
+				var signalValue = parseInt(signalRE[1]);
+
+				if(signalValue > 22){
+					signal = 4
+				}
+				else if(signalValue > 15){
+					signal = 3
+				}
+				else if(signalValue > 7){
+					signal = 2
+				}
+				else if(signalValue > 1){
+					signal = 1
+				}
+				else{
+					signal = 0
+				}
+
+				global.device.emit("signalchanged", signal);
+
+			}
+			catch(e){
+				console.log(e.message)
+			}
+		});
+	}
+
+	if(config.mobileNetwork.active){
+		global.wvdial = spawn("wvdial");
+		global.checkSigInterval = setInterval(checkSignal, 10000);
+		global.checkSignal();
+	}
+}
+else{
+	setInterval(
+		function(){
+			global.device.emit("wifistatus", {ssid : "Testwifi", strength : 3});
 		}
-		catch(e){
-			console.log(e.message)
-		}
-
-
-	});
+	,10000);
 }
 
-
-if(config.mobileNetwork.active){
-	global.wvdial = spawn("wvdial");
-	global.checkSigInterval = setInterval(checkSignal, 10000);
-	global.checkSignal();
-}
 
 openSettings = function(){
 	window.location =  "file://" + process.cwd() +  "/system/settings.html";
@@ -119,11 +142,11 @@ setTimeout(function() {
 	// div.innerHTML = devOverlayHtml;
 
 
-	process.on('uncaughtException', function(err) {
-		console.log("GRONIC ERROR")
-		global.error = err;
-		window.location = process.cwd() + "/system/settings.html#/error";
-	});
+	// process.on('uncaughtException', function(err) {
+	// 	console.log("GRONIC ERROR")
+	// 	global.error = err;
+	// 	window.location = process.cwd() + "/system/settings.html#/error";
+	// });
 },50);
 
 //very dirty workaround don't find a listener for on window load 

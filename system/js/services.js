@@ -1,15 +1,13 @@
 var fs = require("fs");
 var ip = require("ip");
 var platform = require("os").platform();
-var _ = require("underscore");
+
 
 var child_process = require("child_process"); 
 var exec = child_process.exec;
 var spawn = child_process.spawn;
-
 var wifiPath = process.cwd() + "/system/wifinetworks";
-var wifiscanner = require('node-wifiscanner');
-
+	
 angular.module('a13base.services', [])
 
 .factory('config', function() {
@@ -53,6 +51,7 @@ angular.module('a13base.services', [])
 	var configObj = config.get();
 	var settings = configObj.network;
 	var mobileSettings = configObj.mobileNetwork;
+	var wifiNetworks = {};
 
 	function applySettings(selIface, callback){
 		interfacesFile ="auto lo\niface lo inet loopback\n\n";
@@ -84,24 +83,30 @@ angular.module('a13base.services', [])
 				}
 				else if(iface == 'eth0'){
 					interfacesFile += "   hwaddress ether " + settings.mac + "\n\n";
+					exec("ifdown eth0 && ifup eth0")
 				}
 			}
 		}
 		
 		if(platform == 'linux'){
 			fs.writeFileSync("/etc/network/interfaces", interfacesFile);
+			// exec("service networking restart")
 		}
 		else{
 			console.log(interfacesFile)
 		}
 
-		exec("service networking restart")
 
 	}
 
 	return {
 		getIpAddress : function(iface){
-			return ip.address(iface);
+			try{
+				return  ip.address(iface);
+			}
+			catch(e){
+				return null;
+			}
 		},
 		getSettings : function(){
 			return settings;
@@ -113,40 +118,37 @@ angular.module('a13base.services', [])
 			config.save();
 			applySettings(callback);
 		},
-		scanWifi : function(callback){
-			wifiscanner.scan(function(err, data){
-				if (err) 
-					callback(err, null);
-				else{
-					var all  = _.groupBy(data, "ssid");
-					var list = _.map(all, function(aps){
-						return   _.first(_.sortBy(aps, "signal_level"))
-					});
-					console.log(list)
-					callback(null,list);
-				}
+		startScanWifi : function(callback){
+			global.wireless.start();
+			global.wireless.on("appear", function(network){
+				wifiNetworks[network.ssid] = network;
+				callback && callback(wifiNetworks)
 			});
+			return wifiNetworks;
+		},
+		stopScanWifi : function(){
+			global.wireless.stop();
+		},
+		getWifiNetwork : function(ssid){
+			return wifiNetworks[ssid];
 		},
 		connectWifi : function(ssid , passphrase ,  callback){
-			settings.wlan0.ssid = ssid;
+			global.wireless.leave(function(){
+				settings.wlan0.ssid = ssid;
+				var wifiNetwork = wifiNetworks[ssid];
 
-			if(passphrase){
-				settings.wlan0.encryted  = true;
-				var passCmd = "wpa_passphrase " + ssid + " \"" + passphrase + "\" > " + wifiPath + "/" + ssid +  ".conf";
-				exec(passCmd, function(err,stdout, stdin){
-					if(!err){
+				global.wireless.join(wifiNetwork, passphrase, function(err){
+					if(err){
+						callback && callback(err);
+					}
+					else{
+						settings.wlan0.encryted  = wifiNetwork.encryption_any;
 						config.save();
 						applySettings();
-						if(callback)callback();
+						callback && callback(null);
 					}
 				});
-			}
-			else{
-				settings.wlan0.encryted  = false;
-				config.save();
-				applySettings();
-				if(callback)callback();
-			}
+			});
 		},
 		connectMobile : function(){
 			configObj.mobileNetwork.active = true;

@@ -48,6 +48,32 @@ angular.module('gronic.ui', [])
 	}
 })
 
+.directive('wifiStatus', function() {
+	return  {
+		restrict : "E",
+		template : '<span><img ng-src="file:///gronic/img/wifi_{{bars}}.png"></span>',
+		link : function(scope,element,attrs){
+			scope.bars = 0;
+			global.device.on("wifistatus", function(info){
+				if(info.strength > 75){
+					scope.bars = 3; 
+				}
+				else if(info.strength > 50){
+					scope.bars = 2; 
+				}
+				else if(info.strength > 25){
+					scope.bars = 1; 
+				}
+				else{
+					scope.bars = 0;
+				}
+
+				scope.$apply();
+			})
+		}
+	}
+})
+
 .service('keyboardDelegate', function($q){
 	var showKeyboardCb;
 
@@ -67,7 +93,8 @@ angular.module('gronic.ui', [])
 		scope : {
 			title : "@",
 			options : "=",
-			settingsButton : "@"
+			settingsButton : "@",
+			homeButton : "@"
 		},
 		templateUrl : "file:///gronic/templates/statusbar.html",
 		transclude : true,

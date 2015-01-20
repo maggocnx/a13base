@@ -3,6 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 var exec = require('child_process').exec;
 var _ = require('underscore');
 
+
 var Wireless = function(config) {
     EventEmitter.call(this);
 
@@ -54,11 +55,11 @@ Wireless.prototype.COMMANDS = {
     dhcp: 'dhcpcd :INTERFACE',
     dhcp_disable: 'dhcpcd :INTERFACE -k',
     leave: 'iwconfig :INTERFACE essid ""',
-
     metric: 'ifconfig :INTERFACE metric :METRIC',
     connect_wep: 'iwconfig :INTERFACE essid ":ESSID" key :PASSWORD',
-    connect_wpa: 'wpa_passphrase ":ESSID" :PASSWORD > wpa-temp.conf && wpa_supplicant -D wext -i :INTERFACE -c wpa-temp.conf && rm wpa-temp.conf',
+    connect_wpa: 'wpa_passphrase ":ESSID" ":PASSWORD" > wpa-temp.conf && wpa_supplicant -D wext -i :INTERFACE -c wpa-temp.conf && rm wpa-temp.conf',
     connect_open: 'iwconfig :INTERFACE essid ":ESSID"',
+    info : 'iwconfig :INTERFACE '
 };
 
 // Translates strings. Looks for :SOMETHING in string, and replaces is with data.something.
@@ -176,6 +177,31 @@ Wireless.prototype.dhcpStop = function(callback) {
     });
 };
 
+// Get Connection Info
+Wireless.prototype.info = function(callback) {
+    var self = this;
+    var info = {};
+    var strengthRegex = /Signal level(?:=|\:)([-\w]+)/
+
+
+    exec(this.commands.info, function(err, stdout, stderr) {
+        if (err) {
+            callback && callback(err, null);
+        }
+        else{
+            if(stdout.match(strengthRegex)){
+                info.strength = parseInt((strengthRegex.exec(stdout)[1]).trim());
+            }
+            if (stdout.indexOf('ESSID') > -1 ) {
+                var ssidRegex = /ESSID:"(.*)" /;
+                info.ssid  = (ssidRegex.exec(stdout)[1]).trim();
+            }
+            callback && callback(null,info);
+        }
+    });
+};
+
+
 // Enables the interface (ifconfig UP)
 Wireless.prototype.enable = function(callback) {
     var self = this;
@@ -242,6 +268,10 @@ Wireless.prototype.join = function(network, password, callback) {
 Wireless.prototype.leave = function(callback) {
     var self = this;
 
+    if(global.wifiProcess){
+        global.wifiProcess.kill("SIGHUP")
+    }
+
     this.emit('command', this.commands.leave);
     exec(this.commands.leave, function(err, stdout, stderr) {
         if (err) {
@@ -284,8 +314,16 @@ Wireless.prototype._parseScan = function(scanResults) {
         } else if (line.indexOf('Channel') === 0) {
             network.channel = line.match(/Channel:([0-9]{1,2})/)[1];
         } else if (line.indexOf('Quality') === 0) {
-            network.quality = line.match(/Quality=([0-9]{1,2})\/70/)[1];
-            network.strength = line.match(/Signal level=(-?[0-9]{1,3}) dBm/)[1];
+            var strengthRegex = /Signal level(?:=|\:)([-\w]+)/
+            var qualityRegex = /Quality(?:=|\:)([-\w]+)/
+     
+            if(line.match(strengthRegex)){
+                network.strength = (strengthRegex.exec(line)[1]).trim();
+            }
+
+            if(line.match(qualityRegex)){
+                network.quality = (qualityRegex.exec(line)[1]).trim();
+            }
         } else if (line.indexOf('Encryption key') === 0) {
             var enc = line.match(/Encryption key:(on|off)/)[1];
             if (enc === 'on') {
@@ -305,6 +343,7 @@ Wireless.prototype._parseScan = function(scanResults) {
         }
     });
 
+
     if (!_.isEmpty(network)) {
         networks.push(network);
     }
@@ -323,6 +362,8 @@ Wireless.prototype._executeScan = function() {
 
     // Make this a non annonymous function, run immediately, then run interval which runs function
     this.emit('command', this.commands.scan);
+
+
 
     exec(this.commands.scan, function(err, stdout, stderr) {
         if (err) {
@@ -430,6 +471,7 @@ Wireless.prototype._executeConnectWEP = function(essid, password, callback) {
     this.emit('command', command);
 
     exec(command, function(err, stdout, stderr) {
+        console.log(stdout)
         if (err || stderr) {
             self.emit('error', "Shit is broken TODO");
             console.log(err);
@@ -454,18 +496,39 @@ Wireless.prototype._executeConnectWPA = function(essid, password, callback) {
 
     this.emit('command', command);
 
-    exec(command, function(err, stdout, stderr) {
-         if (err || stderr) {
-            self.emit('error', "Shit is broken TODO");
-            console.log(err);
-            console.log(stderr);
 
+        
+    connectProcess = exec(command, function(err, stdout, stderr) {
+        if (err || stderr) {
+            // self.emit('error', "Shit is broken TODO");
             callback && callback(err || stderr);
+        }
+        else{
+            callback && callback(null);
+        }
+        return;        
+    });
+
+    var cnt = 3;
+    function check(){
+        if(cnt == 0 ){
+            callback && callback("WPA Connection Error. Passphrase ??");
             return;
         }
 
-        callback && callback(null);
-    });
+        self.info(function(err,info){
+            console.log(info.ssid)
+
+            if(info.ssid == essid){
+                callback && callback(null);
+            }else{
+                setTimeout(check, 3000)
+                cnt --; 
+            }
+        })
+    } 
+
+    check();
 };
 
 // Connects to an unencrypted network

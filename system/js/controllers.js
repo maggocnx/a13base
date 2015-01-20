@@ -49,6 +49,11 @@ angular.module('a13base.controllers', [])
 	$scope.config = config.get();
 	$scope.interfaces = network.getSettings();
 
+	$scope.ips = {
+		wlan0 : network.getIpAddress('wlan0'),
+		eth0 : network.getIpAddress('eth0')
+	}
+
 	$scope.change = function(iface){
 		network.applySettings(iface, function(){
 		});			
@@ -66,53 +71,61 @@ angular.module('a13base.controllers', [])
 	$http.get("http://ipecho.net/plain").success(function(data){
 		$scope.externalIp  = data;
 	})
-
-	$scope.getAddress = function(iface){
-		return  network.getIpAddress(iface);
-	}
 })
 
 .controller('WifiCtrl', function($scope, network) {
+	$scope.aps = network.startScanWifi(function(networks){
+		$scope.aps = networks;
+		$scope.$apply();
+	});
+
+	$scope.getLevel = function(strength){
+		if(strength > 75){
+			return 3; 
+		}
+		else if(strength > 50){
+			return 2; 
+		}
+		else if(strength > 25){
+			return 1; 
+		}
+		else{
+			return 0;
+		}
+	}
+
+	$scope.$on("$destroy", function(){
+		network.stopScanWifi();
+	})
 	
-	$scope.scan = function(){
-		network.scanWifi(function(err,data){
-			if(!err){
-				// console.log(data)
-				$scope.aps = data;
-				$scope.$apply()
+})
+
+.controller('ApSettingsCtrl', function($scope, $stateParams, $location, network, $ionicLoading) {
+	$scope.network =  network.getWifiNetwork($stateParams.ssid);
+	
+	$scope.network.passphrase = "6Ro/!(bBbBB"
+
+	$scope.connect = function(){
+		$ionicLoading.show({template :  "Connecting ... "})
+		network.connectWifi($scope.network.ssid, $scope.network.passphrase, function(err){
+			$ionicLoading.hide();
+			if(err){
+				$scope.connectionError = err;
+			}
+			else{
+				$location.path("/wifi");
 			}
 		})
 	}
-
-	setInterval(function(){
-		$scope.scan();
-	},10000);
-
-	$scope.scan();
 })
-
 
 .controller('MobileCtrl', function($scope, config, network) {
 	$scope.settings = config.get().mobileNetwork
-
-
 	$scope.$on("$destroy", function(){
 		network.writeMobileConf();
 	})
-
 })
 
-.controller('ApSettingsCtrl', function($scope, $stateParams, $location, network) {
-	$scope.settings = {
-		ssid : $stateParams.ssid
-	}
-
-	$scope.connect = function(){
-		network.connectWifi($scope.settings.ssid, $scope.settings.passphrase, function(){
-
-		})
-	}
-})
 
 .controller('ErrorCtrl', function($scope) {
 	console.log(global.error)

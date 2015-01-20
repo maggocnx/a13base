@@ -7,10 +7,15 @@
 				</h1>
 			</center>			
 		</div>
-
 		<ion-list class="list">
-			<!-- <ion-item href="#/ap/test"  class="item">Test</ion-item> -->
-			<ion-item href="#/ap/{{ap.ssid}}" ng-repeat="ap in aps | orderBy : 'signal_level'" class="item">{{ap.ssid}} signal {{ap.signal_level}}</ion-item>
+			<ion-item  href="#/ap/{{ap}}" ng-repeat="(ap, props)  in aps | orderBy : 'props.strength'" class="item item-button-right" >
+				<h2>{{ap}}</h2>
+				<button class="button button-clear">
+					<p ng-if="ap == currentWifiNetwork.ssid">Connected&nbsp&nbsp</p>
+					<img ng-if="!props.encryption_any" ng-src="img/wifi_{{getLevel(props.strength)}}.png">
+					<img ng-if="props.encryption_any" ng-src="img/wifi_{{getLevel(props.strength)}}enc.png">
+				</button>
+			</ion-item>
 		</ion-list>	
 	</ion-content>
 </ion-view>

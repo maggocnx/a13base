@@ -66,6 +66,10 @@ angular.module('a13base', ['ionic', 'a13base.controllers', 'a13base.services', '
 })
 .run(function($rootScope){
 
+  global.device.on("wifistatus", function(info){
+    $rootScope.currentWifiNetwork = info;
+    $rootScope.$apply();
+  })
 
   $rootScope.reload = function(){
     window.location.reload();

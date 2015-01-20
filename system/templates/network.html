@@ -3,9 +3,7 @@
 		<ion-list>
 			<ion-item class="item item-toggle" href="#/wifi">
 				Wifi 
-				<span class="item-note">
-				 	{{ifaceConfig(wlan0)}}
-			    		</span>
+				<span class="item-note">{{ips.wlan0}}</span>
 			
 				<label class="toggle toggle-assertive">
 					<input type="checkbox" ng-model="interfaces.wlan0.active" ng-change="change('wlan0')">
@@ -16,9 +14,8 @@
 			</ion-item>
 			<ion-item class="item item-toggle" href="#/ip/eth0">
 				Ethernet 
-				 <span class="item-note">
-				 		{{getAddress(eth0)}}
-			    		</span>
+				<span class="item-note">{{ips.eth0}}</span>
+
 				<label class="toggle toggle-assertive">
 					<input type="checkbox" ng-model="interfaces.eth0.active" ng-change="change('eth0')">
 					<div class="track">
