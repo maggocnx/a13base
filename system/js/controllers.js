@@ -44,19 +44,30 @@ angular.module('a13base.controllers', [])
 	$scope.config = config.get();
 })
 
-.controller('NetworkCtrl', function($scope,  $http, network, config) {
+.controller('NetworkCtrl', function($scope,  $http, network, config, $interval) {
 
 	$scope.config = config.get();
 	$scope.interfaces = network.getSettings();
 
-	$scope.ips = {
-		wlan0 : network.getIpAddress('wlan0'),
-		eth0 : network.getIpAddress('eth0')
+
+	var getIps = function(){
+		$scope.ips = {
+			wlan0 : network.getIpAddress('wlan0'),
+			eth0 : network.getIpAddress('eth0')
+		}
 	}
 
+	getIps();
+
+	$interval(getIps, 5000);
+
 	$scope.change = function(iface){
-		network.applySettings(iface, function(){
-		});			
+		if($scope.interfaces[iface].active){
+			network.enableInterface(iface);
+		}
+		else{
+			network.disableInterface(iface);
+		}
 	}
 
 	$scope.toggleMobile = function(){

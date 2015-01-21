@@ -188,7 +188,18 @@ angular.module('a13base.services', [])
 					},2000)
 				}
 			}
+		}, 
+		enableInterface : function(iface){
+			settings[iface].active = true;
+			config.save();
+			writeSettings();
+			exec("ifup " + iface);
+		},
+		disableInterface : function(iface){
+			exec("ifdown " + iface);
+			settings[iface].active = false;
+			config.save();
+			writeSettings();
 		}
-
 	}
 })
