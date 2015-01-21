@@ -85,10 +85,31 @@ angular.module('a13base.controllers', [])
 })
 
 .controller('WifiCtrl', function($scope, network) {
-	$scope.aps = network.startScanWifi(function(networks){
-		$scope.aps = networks;
-		$scope.$apply();
-	});
+
+	function startScan(){
+		$scope.aps = network.startScanWifi(function(networks){
+			$scope.aps = networks;
+			$scope.$apply();
+		});
+	}
+
+	$scope.interfaces = network.getSettings();
+
+	if($scope.interfaces.wlan0.active){
+		startScan();
+	}
+
+
+	$scope.change = function(){
+		if($scope.interfaces.wlan0.active){
+			network.enableInterface('wlan0');
+			startScan();
+		}
+		else{
+			network.disableInterface('wlan0');
+			network.stopScanWifi();
+		}
+	}
 
 	$scope.getLevel = function(strength){
 		if(strength > 75){
@@ -112,9 +133,16 @@ angular.module('a13base.controllers', [])
 })
 
 .controller('ApSettingsCtrl', function($scope, $stateParams, $location, network, $ionicLoading) {
-	$scope.network =  network.getWifiNetwork($stateParams.ssid);
+	var ssid = $stateParams.ssid;
+
+	$scope.network =  network.getWifiNetwork(ssid);
 	
-	$scope.network.passphrase = "6Ro/!(bBbBB"
+	var settings = network.getSettings();
+
+	if(settings.wlan0.networks[ssid]){
+		$scope.network.passphrase =  settings.wlan0.networks[ssid].passphrase;
+	}
+
 
 	$scope.connect = function(){
 		$ionicLoading.show({template :  "Connecting ... "})

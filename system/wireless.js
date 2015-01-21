@@ -515,7 +515,7 @@ Wireless.prototype._executeConnectWPA = function(essid, password, callback) {
     var cnt = 3;
     function check(){
         if(cnt == 0 ){
-            callback && callback("WPA Connection Error. Passphrase ??");
+            callback && callback("WPA Connection Error.");
             return;
         }
 

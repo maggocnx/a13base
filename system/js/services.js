@@ -53,7 +53,7 @@ angular.module('a13base.services', [])
 	var mobileSettings = configObj.mobileNetwork;
 	var wifiNetworks = {};
 
-	function applySettings(selIface, callback){
+	function writeSettings(){
 		interfacesFile ="auto lo\niface lo inet loopback\n\n";
 		var networkSettings = config.get().network;
 		for(var iface in networkSettings){
@@ -64,7 +64,7 @@ angular.module('a13base.services', [])
 				interfacesFile += "auto " + iface + "\niface " + iface + " inet";
 
 				if(networkSettings[iface].dhcp){
-					interfacesFile += " dhcp\n\n"
+					interfacesFile += " dhcp\n"
 				}
 				else{
 					interfacesFile += " static\n"
@@ -83,14 +83,12 @@ angular.module('a13base.services', [])
 				}
 				else if(iface == 'eth0'){
 					interfacesFile += "   hwaddress ether " + settings.mac + "\n\n";
-					exec("ifdown eth0 && ifup eth0")
 				}
 			}
 		}
 		
 		if(platform == 'linux'){
 			fs.writeFileSync("/etc/network/interfaces", interfacesFile);
-			// exec("service networking restart")
 		}
 		else{
 			console.log(interfacesFile)
@@ -111,10 +109,6 @@ angular.module('a13base.services', [])
 		},
 		saveSettings : function(){
 			config.save();
-		}, 
-		applySettings : function(callback){
-			config.save();
-			applySettings(callback);
 		},
 		startScanWifi : function(callback){
 			global.wireless.start();
@@ -134,24 +128,20 @@ angular.module('a13base.services', [])
 			global.wireless.leave(function(){
 				settings.wlan0.ssid = ssid;
 				var wifiNetwork = wifiNetworks[ssid];
+				wifiNetwork.passphrase = passphrase;
 
 				global.wireless.join(wifiNetwork, passphrase, function(err){
 					if(err){
 						callback && callback(err);
 					}
 					else{
+						settings.wlan0.networks[ssid] = wifiNetwork;
 						settings.wlan0.encryted  = wifiNetwork.encryption_any;
 						config.save();
-						applySettings();
+						writeSettings();
 						callback && callback(null);
-
-						
-						
 					}
 				});
-
-
-
 			});
 		},
 		connectMobile : function(){

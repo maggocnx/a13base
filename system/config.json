@@ -25,7 +25,10 @@
             "netmask": "255.255.255.0h",
             "gateway": "192.168.0.1",
             "encryted": false,
-            "ssid": "test"
+            "ssid": "test", 
+            "networks" : {
+
+            }
         }
     }
 }
