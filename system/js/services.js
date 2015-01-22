@@ -125,24 +125,54 @@ angular.module('a13base.services', [])
 			return wifiNetworks[ssid];
 		},
 		connectWifi : function(ssid , passphrase ,  callback){
-			global.wireless.leave(function(){
-				settings.wlan0.ssid = ssid;
-				var wifiNetwork = wifiNetworks[ssid];
-				wifiNetwork.passphrase = passphrase;
+			var self = this;
+			settings.wlan0.ssid = ssid;
+			var wifiNetwork = wifiNetworks[ssid];
+			wifiNetwork.passphrase = passphrase;
+			settings.wlan0.networks[ssid] = wifiNetwork;
 
-				global.wireless.join(wifiNetwork, passphrase, function(err){
-					if(err){
-						callback && callback(err);
-					}
-					else{
-						settings.wlan0.networks[ssid] = wifiNetwork;
-						settings.wlan0.encryted  = wifiNetwork.encryption_any;
-						config.save();
-						writeSettings();
-						callback && callback(null);
-					}
-				});
+			self.disableInterface("wlan0", function(){
+
+				settings.wlan0.encryted  = wifiNetwork.encryption_any;
+
+				if(wifiNetwork.encryption_any){
+					var cmd = 'wpa_passphrase "'+ ssid+ '" "' + passphrase + '" > /gronic/wpa.conf';
+					exec(cmd, function(){
+						self.enableInterface('wlan0');
+						callback(null);
+					});
+				}
+				else{
+					self.enableInterface('wlan0');
+					callback(null);
+				}
 			});
+
+
+			// global.wireless.leave(function(err){
+
+			// 	if(err){
+			// 		console.log("ERR " +err )
+			// 	}
+			// 	else{
+			// 		console.log("LEFT");
+			// 	}
+
+			// 	global.wireless.join(wifiNetwork, passphrase, function(err){
+			// 		if(err){
+			// 			callback && callback(err);
+			// 		}
+			// 		else{
+			// 			settings.wlan0.networks[ssid] = wifiNetwork;
+			// 			settings.wlan0.encryted  = wifiNetwork.encryption_any;
+			// 			config.save();
+			// 			writeSettings();
+			// 			callback && callback(null);
+			// 		}
+			// 	});
+			// }) 
+
+
 		},
 		connectMobile : function(){
 			configObj.mobileNetwork.active = true;
@@ -179,17 +209,28 @@ angular.module('a13base.services', [])
 				}
 			}
 		}, 
-		enableInterface : function(iface){
+		enableInterface : function(iface, callback){
 			settings[iface].active = true;
 			config.save();
 			writeSettings();
-			exec("ifup " + iface);
+			exec("ifup " + iface, function(){
+				callback && callback();
+			});
 		},
-		disableInterface : function(iface){
-			exec("ifdown " + iface);
-			settings[iface].active = false;
-			config.save();
-			writeSettings();
+		disableInterface : function(iface, callback){
+			exec("ifdown " + iface, function(){
+				settings[iface].active = false;
+				config.save();
+				writeSettings();
+				callback && callback();
+			});
+		},
+		restartInterface : function(iface){
+			var self = this;
+			this.disableInterface(iface); 
+			setTimeout(function(){
+				self.enableInterface(iface);
+			});
 		}
 	}
 })

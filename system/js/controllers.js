@@ -22,13 +22,7 @@ angular.module('a13base.controllers', [])
 	$scope.ip = network.getSettings(iface)
 
 	$scope.$on("$destroy", function(){
-		if(iface == "wlan0"){
-			network.saveSettings();
-		}
-		else{
-			network.applySettings(iface, function(){
-			});			
-		}
+		network.restartInterface(iface);
 	})
 })
 
@@ -49,17 +43,27 @@ angular.module('a13base.controllers', [])
 	$scope.config = config.get();
 	$scope.interfaces = network.getSettings();
 
+	$scope.ips = {}
+
 
 	var getIps = function(){
-		$scope.ips = {
-			wlan0 : network.getIpAddress('wlan0'),
-			eth0 : network.getIpAddress('eth0')
-		}
+		$scope.ips.wlan0 = network.getIpAddress('wlan0');
+		$scope.ips.eth0 = network.getIpAddress('eth0');
+
+		$http.get("http://icanhazip.com").success(function(data){
+			if(data != $scope.ips.ext){
+				$scope.ips.ext  = data;
+			}
+		})
 	}
 
 	getIps();
 
-	$interval(getIps, 5000);
+	var checkIpInterval = $interval(getIps, 5000);
+
+	$scope.$on("$destroy", function(){
+		$interval.cancel(checkIpInterval);
+	})
 
 	$scope.change = function(iface){
 		if($scope.interfaces[iface].active){
@@ -79,9 +83,7 @@ angular.module('a13base.controllers', [])
 		}
 	}
 
-	$http.get("http://ipecho.net/plain").success(function(data){
-		$scope.externalIp  = data;
-	})
+	
 })
 
 .controller('WifiCtrl', function($scope, network) {
@@ -142,7 +144,6 @@ angular.module('a13base.controllers', [])
 	if(settings.wlan0.networks[ssid]){
 		$scope.network.passphrase =  settings.wlan0.networks[ssid].passphrase;
 	}
-
 
 	$scope.connect = function(){
 		$ionicLoading.show({template :  "Connecting ... "})

@@ -59,7 +59,9 @@ Wireless.prototype.COMMANDS = {
     connect_wep: 'iwconfig :INTERFACE essid ":ESSID" key :PASSWORD',
     connect_wpa: 'wpa_passphrase ":ESSID" ":PASSWORD" > /gronic/wpa.conf && wpa_supplicant -D wext -i :INTERFACE -c /gronic/wpa.conf',
     connect_open: 'iwconfig :INTERFACE essid ":ESSID"',
-    info : 'iwconfig :INTERFACE '
+    info : 'iwconfig :INTERFACE ',
+    ifdown : 'ifdown :INTERFACE', 
+    ifup : 'ifup :INTERFACE', 
 };
 
 // Translates strings. Looks for :SOMETHING in string, and replaces is with data.something.
@@ -258,14 +260,46 @@ Wireless.prototype.disable = function(callback) {
 
 // Attempts to connect to the specified network
 Wireless.prototype.join = function(network, password, callback) {
-    if (network.encryption_wep) {
-        this._executeConnectWEP(network.ssid, password, callback);
-    } else if (network.encryption_wpa || network.encryption_wpa2) {
-        this._executeConnectWPA(network.ssid, password, callback);
-    } else {
-        this._executeConnectOPEN(network.ssid, callback);
-    }
+    var self = this;
+
+    self._ifdown(function(){
+        if (network.encryption_wep) {
+            self._executeConnectWEP(network.ssid, password, function(){
+                self._ifup(callback);
+            });
+        } else if (network.encryption_wpa || network.encryption_wpa2) {
+            self._executeConnectWPA(network.ssid, password,  function(){
+                self._ifup(callback);
+            });
+        } else {
+            self._executeConnectOPEN(network.ssid,  function(){
+                self._ifup(callback);
+            });
+        }
+    })
+
 };
+
+
+Wireless.prototype._ifdown = function(callback){
+    console.log("DOWN")
+
+    var ifdown = this._translate(this.commands.ifdown);
+    exec(ifdown, function(){
+        callback && callback();    
+    });
+}
+
+Wireless.prototype._ifup = function(callback){
+    console.log("UP")
+    var ifup = this._translate(this.commands.ifup);
+    exec(ifup, function(){
+        callback && callback();    
+    });
+}
+
+
+
 
 // Attempts to disconnect from the specified network
 Wireless.prototype.leave = function(callback) {
@@ -501,7 +535,7 @@ Wireless.prototype._executeConnectWPA = function(essid, password, callback) {
 
 
         
-    connectProcess = exec(command, function(err, stdout, stderr) {
+    exec(command, function(err, stdout, stderr) {
         if (err || stderr) {
             // self.emit('error', "Shit is broken TODO");
             callback && callback(err || stderr);
