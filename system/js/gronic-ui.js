@@ -17,31 +17,44 @@ angular.module('gronic.ui', [])
 .directive('input', function(keyboardDelegate){
 	return {
 		restrict : "E",
-		scope : { ngModel : '='},
+		scope : { 
+			ngModel : '=', 
+			onComplete : '='
+		},
 		link : function(scope, element, attrs){
 			
 			if( typeof attrs.disableTouch != 'undefined' ){
 				return;
 			}
 
-			var prompt = attrs.name || attrs.prompt;
+			var prompt = attrs.name || attrs.prompt
+
 
 			element.on("focus", function(){
+				console.log("INPUT " + scope.ngModel);
 				keyboardOptions = {
 					value : scope.ngModel,
 					prompt : prompt,
-					type : attrs.type
+					type : attrs.type,
 				}
 
 				keyboardDelegate.show(keyboardOptions, function(value){
-						if(typeof scope.ngModel == "undefined") return;
-							
-						if(attrs.type=="number"){
-							scope.ngModel = parseInt(value)
+					console.log(scope.ngModel)
+
+					console.log("CALLLBACK ", value)
+					if(typeof scope.ngModel == "undefined") return;
+						
+					if(attrs.type=="number"){
+						scope.ngModel = parseInt(value)
+					}
+					else{
+						if(scope.onComplete){
+							scope.onComplete(value);
 						}
 						else{
 							scope.ngModel = value;
 						}
+					}
 				});
 			});
 		}
@@ -84,9 +97,10 @@ angular.module('gronic.ui', [])
 
 	return {
 		show : function(options, callback){
-			showKeyboardCb(options, callback)
+			showKeyboardCb && showKeyboardCb(options, callback)
 		},
 		link : function(callback){
+			console.log("LUNNDNDNNDDN")
 			showKeyboardCb = callback
 		}
 	}
@@ -162,6 +176,7 @@ angular.module('gronic.ui', [])
 				{ value: "123", isChar: "false", buttonClass: "keyboardbutton button_switch_layout", change: "number", keyClass: "key key_number" },
 				{ value: 44 },{ value: 32, buttonClass: "keyboardbutton button_space" },{ value: 46 },
 				{ value: "Enter",icon : "ion-checkmark",  isChar: "false", buttonClass: "keyboardbutton button_enter", onclick: "enter", keyClass: "key key_enter" }
+
 			]
 		},
 		
@@ -225,22 +240,28 @@ angular.module('gronic.ui', [])
 		transclude : true,
 		link: function(scope, element, attrs){
 			var inputElement =  element.find("input")[0]
-
+			var onCompleteCallback = null;
 			window.testInput = inputElement;
 
 			scope.keyboard = {
-				layouts : layouts
+				layouts : layouts,
+				class  : global.deviceType
 			}
 
 			keyboardDelegate.link(function(options, callback){
-				scope.keyboard.value = (options.value != undefined) ? options.value : "x";
+
+				console.log("SCHOW " + options.value)
+
+				scope.keyboard.foo =options.value;
+
+				scope.keyboard.value = angular.copy((options.value != undefined) ? options.value : "");
 				scope.keyboard.prompt = options.prompt;
 				scope.keyboard.type = options.type;
 
 				scope.keyboard.hidden = (options.type == "number") ? true : false;
 				inputElement.focus();
 
-				onComplete = callback;
+				onCompleteCallback = callback;
 
 				setTimeout(function() {
 					scope.keyboard.visible = true;
@@ -262,7 +283,7 @@ angular.module('gronic.ui', [])
 
 			complete = function(){
 				scope.keyboard.visible = false;
-				onComplete(scope.keyboard.value);
+				onCompleteCallback &&  onCompleteCallback(scope.keyboard.value);
 			}
 
 			scope.refocus = function(evt){
