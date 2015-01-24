@@ -15,6 +15,8 @@ angular.module('gronic.ui', [])
 
 })
 .directive('input', function(keyboardDelegate){
+	var allowedTypes = ['text','password', 'number', 'email', 'tel', 'url'];
+	
 	return {
 		restrict : "E",
 		scope : { 
@@ -26,12 +28,15 @@ angular.module('gronic.ui', [])
 			if( typeof attrs.disableTouch != 'undefined' ){
 				return;
 			}
+			
+			if( allowedTypes.indexOf(attrs.type) == -1){
+				return;
+			}
 
 			var prompt = attrs.name || attrs.prompt
 
 
 			element.on("focus", function(){
-				console.log("INPUT " + scope.ngModel);
 				keyboardOptions = {
 					value : scope.ngModel,
 					prompt : prompt,
@@ -39,9 +44,7 @@ angular.module('gronic.ui', [])
 				}
 
 				keyboardDelegate.show(keyboardOptions, function(value){
-					console.log(scope.ngModel)
 
-					console.log("CALLLBACK ", value)
 					if(typeof scope.ngModel == "undefined") return;
 						
 					if(attrs.type=="number"){
@@ -100,7 +103,6 @@ angular.module('gronic.ui', [])
 			showKeyboardCb && showKeyboardCb(options, callback)
 		},
 		link : function(callback){
-			console.log("LUNNDNDNNDDN")
 			showKeyboardCb = callback
 		}
 	}
@@ -241,6 +243,7 @@ angular.module('gronic.ui', [])
 		link: function(scope, element, attrs){
 			var inputElement =  element.find("input")[0]
 			var onCompleteCallback = null;
+
 			window.testInput = inputElement;
 
 			scope.keyboard = {
@@ -250,7 +253,6 @@ angular.module('gronic.ui', [])
 
 			keyboardDelegate.link(function(options, callback){
 
-				console.log("SCHOW " + options.value)
 
 				scope.keyboard.foo =options.value;
 
@@ -275,6 +277,21 @@ angular.module('gronic.ui', [])
 				if(e.keyCode == 13 ){
 					complete();
 				}
+			}
+
+			scope.getType = function(){
+				var type = angular.copy(scope.keyboard.type);
+
+				if(type == "password"){
+					return scope.keyboard.showPassword ? 'text' : 'password';
+				}
+				else{
+					return "text"
+				}
+			}
+
+			scope.togglePassword = function(){
+				console.log("FOFOFO")
 			}
 
 			if(!scope.type || !scope.keyboard[scope.type] ){
