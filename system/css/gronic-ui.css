@@ -1,8 +1,8 @@
-/** {
+* {
 	cursor: url(file:///gronic/img//transparent.png), auto;
 
 }
-*/
+
 
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
@@ -213,6 +213,7 @@ input[type=number]::-webkit-outer-spin-button {
   list-style: none;
   overflow: hidden;
   display: inline-block;
+  margin-bottom: 5px;
 }
 
 #signal-strength li {
@@ -246,12 +247,9 @@ input[type=number]::-webkit-outer-spin-button {
   background: #ccc;
 }
 
-
 #signal-strength li div.active{
 	background: #333;
 }
-
-
 
 #overlay {
 	position: absolute;
