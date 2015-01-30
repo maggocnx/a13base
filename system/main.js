@@ -1,89 +1,102 @@
 var platform = require('os').platform();
-var exec = require("child_process");
 var secretCode = 0;
 var gui = null;
 var child_process = require("child_process"); 
 var exec = child_process.exec;
 var spawn = child_process.spawn;
-var platform = require("os").platform();
+var events = require('events');
+
 
 var config = require(process.cwd() + "/system/config.json");
 global.deviceType = config.deviceType;
 
-var events = require('events');
 global.device = new events.EventEmitter();
 
 global.reverseTunnel = null;
+global.startTime = new Date().getTime();
 
-var devOverlayHtml = '<button class="button-icon ion-refresh" click="alert("PPP")"></button>'
 
-if(platform == 'linux'){
+if(platform=='linux'){
 	var Wireless = require("./wireless.js");
 	global.wireless = new Wireless({iface : "wlan0"});
-	global.wifiProcess = null;
+}
 
-	checkWifiStatus = function(){
+var _checkWifiStatus = function(){
+	if(platform=='linux'){
 		wireless.info(function(err,info){
 			if(err || !info.ssid ){
-				// console.log("NO WIFI")
 				global.device.emit("wifistatus", null)
 			}
 			else{
-				// console.log("YES WIFI")
 				global.device.emit("wifistatus", info)
 			}
 		});
 	}
-
-	checkWifiStatus();
-
-	setInterval(checkWifiStatus,10000 );
-
-	global.checkSignal =function(){
-		global.signalCheckProcess = exec("comgt -d /dev/ttyUSB2 sig",function(err, stdout,stderr){
-			try{
-				var signalRE = stdout.match("ty: (.*),");
-				var signalValue = parseInt(signalRE[1]);
-
-				if(signalValue > 22){
-					signal = 4
-				}
-				else if(signalValue > 15){
-					signal = 3
-				}
-				else if(signalValue > 7){
-					signal = 2
-				}
-				else if(signalValue > 1){
-					signal = 1
-				}
-				else{
-					signal = 0
-				}
-
-				global.device.emit("signalchanged", signal);
-
-			}
-			catch(e){
-				console.log(e.message)
-			}
-		});
-	}
-
-	if(config.mobileNetwork.active){
-		global.wvdial = spawn("wvdial");
-		global.checkSigInterval = setInterval(checkSignal, 10000);
-		global.checkSignal();
+	else{
+		global.device.emit("wifistatus", {ssid : "Testwifi", strength : Math.floor(Math.random() * 100)});
 	}
 }
-else{
-	setInterval(
-		function(){
-			global.device.emit("wifistatus", {ssid : "Testwifi", strength : 3});
+
+var _checkSignal =function(){
+	global.signalCheckProcess = exec("comgt -d /dev/ttyUSB2 sig",function(err, stdout,stderr){
+		try{
+			var signalRE = stdout.match("ty: (.*),");
+			var signalValue = parseInt(signalRE[1]);
+
+			if(signalValue > 22){
+				signal = 4
+			}
+			else if(signalValue > 15){
+				signal = 3
+			}
+			else if(signalValue > 7){
+				signal = 2
+			}
+			else if(signalValue > 1){
+				signal = 1
+			}
+			else{
+				signal = 0
+			}
+			global.device.emit("signalchanged", signal);
 		}
-	,10000);
+		catch(e){
+			console.log(e.message)
+		}
+	});
 }
 
+
+var _checkWifiInterval = null;
+
+global.startWifiCheck = function(){
+	_checkWifiStatus();
+	_checkWifiInterval = setInterval(_checkWifiStatus, 3000);
+}
+
+global.stopWifiCheck = function(){
+	clearInterval(_checkWifiInterval);
+}
+
+
+var _checkMobileInterval;
+
+global.startMobileCheck = function(){
+	_checkSignal();
+	_checkMobileInterval = setInterval(checkSignal, 3000);
+}
+
+global.stopMobileCheck = function(){
+	clearInterval(_checkMobileInterval);
+}
+
+
+
+global.restart = function(){
+	var cmd = (platform=="linux") ? "nw" : "/Applications/node-webkit.app/Contents/MacOS/node-webkit";
+	spawn(cmd, ['.']);
+	process.exit();
+}
 
 openSettings = function(){
 	window.location =  "file://" + process.cwd() +  "/system/settings.html";
@@ -109,7 +122,7 @@ var settingsFunctions = {
 	16 : remote
 }
 
-keyup = function(e){
+var _keyup = function(e){
 	// console.log(e)
 
 	if( e.keyCode > 47 && e.keyCode < 58 ){
@@ -132,34 +145,51 @@ keyup = function(e){
 	}
 }
 
-setTimeout(function() {
-	gui = window.require("nw.gui");
-	window.onkeyup = keyup;
+
+var _initWindow = function(){
+	window.onkeyup = _keyup;
+	global.startWifiCheck();
+	window.isInitialized = true;
+	window.onbeforeunload = function(){ 
+		global.stopWifiCheck();
+	}
+}
+
+_windowCheckInterval = setInterval(function(){
+	console.log("STERTUP")
+	if(window){
+		clearInterval(_windowCheckInterval);
+		_initWindow();
+
+		setInterval(function(){
+			if(!window.isInitialized){
+				_initWindow();
+			}
+		},100);
 
 	// if(platform=='darwin'){
 	// 	var gui = window.require('nw.gui');
- 	//  var win = gui.Window.get();
- 	//  devWin = win.showDevTools();
- 	//  devWin.moveTo(100,100)
+	// 	 	var win = gui.Window.get();
+	// 	 	devWin = win.showDevTools();
+	// 	 	devWin.moveTo(100,100)
 	// }
 
-	var div = window.document.createElement('div');
-	// div.innerHTML = devOverlayHtml;
-
-
-	// process.on('uncaughtException', function(err) {
-	// 	console.log("GRONIC ERROR")
-	// 	global.error = err;
-	// 	window.location = process.cwd() + "/system/settings.html#/error";
-	// });
-},50);
-
-//very dirty workaround don't find a listener for on window load 
-setInterval(function(){ 
-	if(!window.onkeyup){
-		window.onkeyup = keyup;
-
-
-
 	}
-}, 500)
+},1)
+
+
+
+
+process.on('uncaughtException', function(err) {
+	console.log("GRONIC ERROR")
+	global.error = err;
+	window.location = process.cwd() + "/system/settings.html#/error";
+});
+
+
+
+
+
+
+
+

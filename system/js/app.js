@@ -65,6 +65,7 @@ angular.module('a13base', ['ionic', 'a13base.controllers', 'a13base.services', '
     $urlRouterProvider.otherwise('/menu');
 })
 .run(function($rootScope){
+  $rootScope.deviceType = global.deviceType; 
 
   global.device.on("wifistatus", function(info){
     $rootScope.currentWifiNetwork = info;

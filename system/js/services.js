@@ -2,7 +2,6 @@ var fs = require("fs");
 var ip = require("ip");
 var platform = require("os").platform();
 
-
 var child_process = require("child_process"); 
 var exec = child_process.exec;
 var spawn = child_process.spawn;

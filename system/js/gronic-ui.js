@@ -7,8 +7,9 @@ angular.module('gronic.ui', [])
 	var keyboardScope = $rootScope.$new();
 	var gronicKeyboard = angular.element(document.createElement('keyboard'));
 	var el = $compile( gronicKeyboard )( keyboardScope );
-	angular.element(document.body).append(gronicKeyboard);
 
+
+	angular.element(document.body).append(gronicKeyboard);
 	$rootScope.reload = function(){
 		window.location.reload();
 	}
@@ -35,12 +36,11 @@ angular.module('gronic.ui', [])
 
 			var prompt = attrs.name || attrs.prompt
 
-
 			element.on("focus", function(){
 				keyboardOptions = {
 					value : scope.ngModel,
 					prompt : prompt,
-					type : attrs.type,
+					type : attrs.type
 				}
 
 				keyboardDelegate.show(keyboardOptions, function(value){
@@ -65,14 +65,21 @@ angular.module('gronic.ui', [])
 })
 
 .directive('wifiStatus', function() {
+	con = console
 	return  {
 		restrict : "E",
-		template : '<span ng-show="active"><img ng-src="file:///gronic/img/wifi_{{bars}}.png"></span>',
-		link : function(scope,element,attrs){
+		template : '<span ng-show="active"><img width="40px" height="40px" ng-src="file:///gronic/img/wifi_{{bars}}.png"></span>',
+		link : function(scope,element2,attrs){
+
+
+			scope.$on('destroy', function(){
+				console.log("SSSSDESS")
+			})
+
 			scope.bars = 0;
 			scope.active = false;
 			global.device.on("wifistatus", function(info){
-				
+
 				if(info){
 					scope.active = true;
 					if(info.strength > 75){
@@ -89,8 +96,17 @@ angular.module('gronic.ui', [])
 					}
 				}
 
-				scope.$apply();
+				try{
+					// scope.$apply();
+				}
+				catch(e){
+					console.log("GRONIC Err")
+				}
+				
 			})
+
+			
+
 		}
 	}
 })
@@ -108,6 +124,25 @@ angular.module('gronic.ui', [])
 	}
 })
 
+.directive('mobileStatus', function($interval){
+	return {
+		restrict : "E",
+		template : '<ul id="signal-strength"  ng-if="signal"> \
+    	    	<li class="very-weak"><div ng-class="{active : signal > 0}"></div></li> \
+    	    	<li class="weak"><div ng-class="{active : signal > 1}"></div></li> \
+    	    	<li class="strong"><div ng-class="{active : signal > 2}"></div></li> \
+    	    	<li class="pretty-strong"><div ng-class="{active : signal > 3}"></div></li> \
+				</ul>', 
+		link: function(scope, element, attrs){
+			global.device.on("signalchanged",function(signal){
+					scope.signal = signal;
+					scope.$apply()
+			})
+		}
+	}
+})
+
+
 .directive('statusBar', function($interval){
 	return {
 		restrict : "EA",
@@ -117,18 +152,22 @@ angular.module('gronic.ui', [])
 			settingsButton : "@",
 			homeButton : "@"
 		},
-		templateUrl : "file:///gronic/templates/statusbar.html",
-		transclude : true,
+		// templateUrl : "file:///gronic/templates/statusbar.html",
+		template : '<div class="bar bar-header"> \
+					  <a ng-if="settingsButton" class="button button-icon icon ion-gear-a" href="file:///gronic/settings.html" ></a> \
+					  <a ng-if="homeButton" class="button button-icon icon ion-gear-a" href="file:///gronic/settings.html" ></a> \
+    					<h1 class="title">{{title}} \
+					  </h1> \
+					  <div class="button button-clear"> \
+    					<mobile-status></mobile-status> \
+    					<wifi-status></wifi-status> \
+    					{{currentTime | date : "HH:mm"}} \
+					  </div> \
+					</div>',
 		link: function(scope, element, attrs){
 			scope.currentTime = new Date();
-
-			global.device.on("signalchanged",function(signal){
-				scope.signal = signal;
-				scope.$apply()
-			})
-
 			$interval(function(){
-				scope.currentTime = new Date();
+			// 	scope.currentTime = new Date();
 			},1000)
 		}
 	}
@@ -238,7 +277,8 @@ angular.module('gronic.ui', [])
 	}
 	return {
 		restrict : "EA",
-		templateUrl : "file:///gronic/templates/gronic-keyboard.html",
+		// templateUrl : "file:///gronic/templates/gronic-keyboard.html",
+		template : '<div id="grInput" class="input-overlay" ng-show="keyboard.visible" > <div class="list list-inset"> <label class="item item-input" > <span class="input-label">{{keyboard.prompt}}</span> <span  ng-show="keyboard.type==\'password\'"> <button  class="button button-clear icon ion-eye" ng-class="{\'ion-eye-disabled\' : keyboard.showPassword}" ng-click="keyboard.showPassword = !keyboard.showPassword"></button> </span> <input  id="grTouchInput" ng-keypress="keypress($event)" type="{{getType()}}" placeholder="{{keyboard.placelholder}}" ng-model="keyboard.value" > </label> </div> <div ng-class="keyboard.class" class="keyboardBody"  ng-hide="keyboard.hidden"> <div ng-repeat="(name, layout) in keyboard.layouts"> <div ng-show="currentLayout==name" class="keyboardbutton" ng-class="key.buttonClass" ng-repeat="key in layout.keys" ng-click="triggerButton(key, $event, $element)" > <div ng-class="key.keyClass" class="key"> <div ng-if="!key.icon">{{getText(key)}}</div> <i ng-if="key.icon" class="icon" ng-class="key.icon"></i> </div> </div> </div> </div> </div>',
 		transclude : true,
 		link: function(scope, element, attrs){
 			var inputElement =  element.find("input")[0]
@@ -290,10 +330,6 @@ angular.module('gronic.ui', [])
 				}
 			}
 
-			scope.togglePassword = function(){
-				console.log("FOFOFO")
-			}
-
 			if(!scope.type || !scope.keyboard[scope.type] ){
 				scope.currentLayout = 'text'
 			}
@@ -313,7 +349,6 @@ angular.module('gronic.ui', [])
 				setTimeout(function() {
 					button.css("background-color", "#fff");
 				}, 200);
-
 
 				if(scope.currentLayout == "capital"){
 					scope.currentLayout = "text";
