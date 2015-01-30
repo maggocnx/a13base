@@ -1,15 +1,10 @@
 <div class="bar bar-header">
-  <a ng-if="settingsButton" class="button button-icon icon ion-gear-a" href="file:///gronic/settings.html" ></a>
+  <a ng-if="settingsButton" class="button button-icon icon ion-gear-a" href="file:///../system//settings.html" ></a>
   <a ng-if="homeButton" class="button button-icon icon ion-gear-a" href="file:///gronic/settings.html" ></a>
     <h1 class="title">{{title}}
   </h1>
   <div class="button button-clear">
-    <ul id="signal-strength"  ng-if="signal">
-        <li class="very-weak"><div ng-class="{active : signal > 0}"></div></li>
-        <li class="weak"><div ng-class="{active : signal > 1}"></div></li>
-        <li class="strong"><div ng-class="{active : signal > 2}"></div></li>
-        <li class="pretty-strong"><div ng-class="{active : signal > 3}"></div></li>
-    </ul>
+    <mobile-status></mobile-status>
     <wifi-status></wifi-status>
     {{currentTime | date : 'HH:mm'}}
   </div>
