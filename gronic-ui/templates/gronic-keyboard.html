@@ -1,12 +1,11 @@
 <div id="grInput" class="input-overlay" ng-show="keyboard.visible" >
-	
 	<div class="list list-inset">
 		<label class="item item-input" >
-			<div  ng-show="keyboard.type=='password'">
-				<button  class="button button-clear icon ion-eye" ng-class="{'ion-eye-disabled' : keyboard.showPassword}" ng-click="keyboard.showPassword = !keyboard.showPassword"></button>
-			</div>
 			<span class="input-label">{{keyboard.prompt}}</span>
-			<input  id="grTouchInput" ng-keypress="keypress($event)" type="{{getType()}}" placeholder="{{keyboard.placelholder}}" ng-model="keyboard.value" disable-touch   >
+			<span  ng-show="keyboard.type=='password'">
+				<button  class="button button-clear icon ion-eye" ng-class="{'ion-eye-disabled' : keyboard.showPassword}" ng-click="keyboard.showPassword = !keyboard.showPassword"></button>
+			</span>
+			<input  id="grTouchInput" ng-keypress="keypress($event)" type="{{getType()}}" placeholder="{{keyboard.placelholder}}" ng-model="keyboard.value" >
 		</label>
 	</div>
 	<div ng-class="keyboard.class" class="keyboardBody"  ng-hide="keyboard.hidden">

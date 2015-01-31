@@ -1,0 +1,6 @@
+<ul id="signal-strength"  ng-if="signal"> 
+	<li class="very-weak"><div ng-class="{active : signal > 0}"></div></li> 
+	<li class="weak"><div ng-class="{active : signal > 1}"></div></li> 
+	<li class="strong"><div ng-class="{active : signal > 2}"></div></li> 
+	<li class="pretty-strong"><div ng-class="{active : signal > 3}"></div></li> 
+</ul>

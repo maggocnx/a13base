@@ -3,20 +3,14 @@
   <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+
 		<title>Gronic</title>
-		
+    	<script src="../lib/ionic/js/ionic.bundle.js"></script>
+    	<script src="../gronic-ui/js/gronic-ui.js"></script>
+    	<script src="../gronic-ui/js/gronic-input.js"></script>
 
-		<!-- Include ionicframework for mobile components. Angularjs is includes in the bundle -->
-		<script src="file:///gronic/lib/ionic/js/ionic.bundle.js"></script>
-		<!-- Include components our custom components for touchkeyboard, printing, statusbar etc. -->
-		<script src="file:///gronic/js/gronic-ui.js"></script>
-
-		<!-- css components for ionic  -->
-		<link href="file:///gronic/lib/ionic/css/ionic.css" rel="stylesheet">
-
-		<!-- gronic css (keyboard, statusbar etc.) -->
-		<link href="file:///gronic/css/gronic-ui.css" rel="stylesheet">
-
+		<link href="../lib/ionic/css/ionic.css" rel="stylesheet">
+    	<link href="../gronic-ui/css/gronic-ui.css" rel="stylesheet">
 
 	</head>
 	<body ng-controller="DemoCtrl" ng-keydown="onKeypress($event)">
@@ -28,7 +22,7 @@
 		<ion-content padding="true" class="has-header">
 			<ion-list>
 				<label class="item item-input">
-					<input  id="testInput" type="text" disable-touch placeholder="Type a number on keypad" name="Test" ng-model="userData.test" tabindex="0" autofocus="true">
+					<input  id="testInput" type="text"  placeholder="Type a number on keypad" name="Test" ng-model="userData.test" tabindex="0"  disable-touch >
 				</label>
 			</ion-list>
 		    <div class="card">
@@ -37,19 +31,22 @@
 					<p>Press the settings button in the header bar to access the settings. Here you can setup a new url for your own app. </p>				  
   				</div>
 			</div>
+			<button class="button" ng-click="foo()">Test</button>
 		</ion-content>
 
 		<!-- Canvas for drawing the image for the thermal printer  -->
 		<canvas id="printCanvas" width="384px" height="50px" ></canvas>
 	</body>
-	<script>
+	
 
+
+	<script>
 		// Initialisation of an angularjs app  ionic and gronic.ui modules need to be injected
 		angular.module('demoApp', ['ionic' , 'gronic.ui']) 
 
 		//Simple controller. In real world application routing would be probably used.
 		.controller("DemoCtrl", function($scope, printer, $ionicScrollDelegate ){
-
+			console.timeEnd("index")
 			//Get canvas and its context
 			var canvas = document.getElementById("printCanvas");
 			var context = canvas.getContext('2d');
@@ -58,8 +55,9 @@
 			var testInput = document.getElementById("testInput");
 
 			// $scope variable for 2 way binding to the html view
-			$scope.userData = {}
-
+			$scope.userData = {
+				test : ""
+			}
 
 			//Function gets called if key is pressed. Note the ng-keydown attribute in the body tag above
 			$scope.onKeypress = function(e){
@@ -86,7 +84,6 @@
 					context.clearRect ( 0 , 0 , canvas.width, canvas.height );
 				});
 			}
-
 		})
 	</script>
 </html>

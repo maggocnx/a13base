@@ -10,7 +10,7 @@ var wifiPath = process.cwd() + "/system/wifinetworks";
 angular.module('a13base.services', [])
 
 .factory('config', function() {
-	var configPath = "./system/config.json";
+	var configPath = process.cwd() + "/config.json";
 
 	var config = JSON.parse(fs.readFileSync(configPath));
 

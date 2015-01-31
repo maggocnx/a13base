@@ -7,7 +7,7 @@ var spawn = child_process.spawn;
 var events = require('events');
 
 
-var config = require(process.cwd() + "/system/config.json");
+var config = require(process.cwd() + "/config.json");
 global.deviceType = config.deviceType;
 
 global.device = new events.EventEmitter();
@@ -156,40 +156,36 @@ var _initWindow = function(){
 }
 
 _windowCheckInterval = setInterval(function(){
-	console.log("STERTUP")
-	if(window){
-		clearInterval(_windowCheckInterval);
-		_initWindow();
+	try{
+		if(window){
+			clearInterval(_windowCheckInterval);
+			_initWindow();
 
-		setInterval(function(){
-			if(!window.isInitialized){
-				_initWindow();
-			}
-		},100);
+			setInterval(function(){
+				if(!window.isInitialized){
+					_initWindow();
+				}
+			},100);
 
-	// if(platform=='darwin'){
-	// 	var gui = window.require('nw.gui');
-	// 	 	var win = gui.Window.get();
-	// 	 	devWin = win.showDevTools();
-	// 	 	devWin.moveTo(100,100)
-	// }
+		// if(platform=='darwin'){
+		// 	var gui = window.require('nw.gui');
+		// 	 	var win = gui.Window.get();
+		// 	 	devWin = win.showDevTools();
+		// 	 	devWin.moveTo(100,100)
+		// }
+
+		}
+	}
+	catch(e){
 
 	}
 },1)
 
 
-
-
-process.on('uncaughtException', function(err) {
-	console.log("GRONIC ERROR")
-	global.error = err;
-	window.location = process.cwd() + "/system/settings.html#/error";
-});
-
-
-
-
-
-
-
-
+if(process.env.NODE_ENV == 'production'){
+	process.on('uncaughtException', function(err) {
+		console.log("GRONIC ERROR")
+		global.error = err;
+		// window.location = process.cwd() + "/system/settings.html#/error";
+	});
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html >
+  <head></head>
+  <body>
+      <h1>Waiting</h1>
+  </body>
+  <script>
+      var fs = require("fs");
+      var baseDir = process.cwd();
+      var config = JSON.parse(fs.readFileSync(baseDir + "/config.json"));
+
+      if(config.app.startup){
+        var startup = config.app.startup;
+        var url; 
+
+        if(startup.indexOf("http") == 0){
+          url = startup;
+        }
+        else{
+          url = baseDir + "/user/" + startup;
+        }
+      }
+      else{
+          url = baseDir + "/gronic-settings/settings.html";
+      }
+      document.write(window.location)
+      window.location = url;
+  </script>
+</html>
