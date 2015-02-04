@@ -1,0 +1,31 @@
+<ion-view title="Wifi" >
+	<ion-content class="has-header">
+		<ion-item class="item item-divider item-toggle">
+			Wifi 
+			<br>
+			<br>
+			<label class="toggle toggle-assertive">
+				<input type="checkbox" ng-model="interfaces.wlan0.active" ng-change="change()">
+				<div class="track">
+					<div class="handle"></div>
+		   		</div>
+		 	</label>
+		</ion-item>
+
+		<ion-list class="list" ng-show="interfaces.wlan0.active">
+			<ion-item  href="#/ap/{{ap}}" ng-repeat="(ap, props)  in aps | orderBy : 'props.strength'" class="item item-button-right" >
+				<h2>{{ap}}</h2>
+				<button class="button button-clear">
+					<p ng-if="ap == currentWifiNetwork.ssid">Connected&nbsp&nbsp</p>
+					<img ng-if="!props.encryption_any" ng-src="../gronic-ui/img/wifi_{{getLevel(props.strength)}}.png">
+					<img ng-if="props.encryption_any" ng-src="../gronic-ui/img/wifi_{{getLevel(props.strength)}}enc.png">
+				</button>
+			</ion-item>
+		</ion-list>	
+		<div ng-hide="interfaces.wlan0.active" class="card">
+  			<div class="item item-text-wrap">
+    			Please enable WIFI to show available Networks
+  			</div>
+		</div>
+	</ion-content>
+</ion-view>
